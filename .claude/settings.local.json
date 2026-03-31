@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /c/Users/msi/AppData/Local/npm-cache/_npx/43414d9b790239bb -maxdepth 3 -name package.json -o -name config* -o -name *.schema.*)",
+      "Bash(find /c/Users/msi/AppData/Local/npm-cache/_npx/43414d9b790239bb/node_modules -path *paperclip* -name *.md -o -path *paperclip* -name SKILL.md)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(npm install:*)"
+    ]
+  }
+}
