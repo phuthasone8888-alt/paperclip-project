@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="lo">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ເກມເຕັດຕຣິດ - ພາສາລາວ</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(135deg, #0d0d2b 0%, #1a1a4e 50%, #0d0d2b 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: #fff;
+    }
+
+    .game-wrapper {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+    }
+
+    .left-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: 160px;
+    }
+
+    .right-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: 160px;
+    }
+
+    .panel-box {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      padding: 14px;
+      backdrop-filter: blur(10px);
+    }
+
+    .panel-box h3 {
+      font-size: 12px;
+      color: #a0a0c0;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .panel-box .value {
+      font-size: 28px;
+      font-weight: bold;
+      color: #fff;
+    }
+
+    .panel-box .sub-value {
+      font-size: 13px;
+      color: #7878aa;
+      margin-top: 2px;
+    }
+
+    .title {
+      font-size: 13px;
+      color: #e0c060;
+      text-align: center;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    /* Main canvas */
+    .canvas-container {
+      position: relative;
+    }
+
+    #gameCanvas {
+      display: block;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      box-shadow: 0 0 40px rgba(80, 80, 255, 0.3), 0 0 80px rgba(80, 80, 255, 0.1);
+    }
+
+    /* Next piece canvas */
+    #nextCanvas {
+      display: block;
+      margin: 0 auto;
+    }
+
+    /* Overlay */
+    #overlay {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 20, 0.85);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+    }
+
+    #overlay h1 {
+      font-size: 32px;
+      color: #e0c060;
+      text-shadow: 0 0 20px rgba(224, 192, 96, 0.8);
+      text-align: center;
+    }
+
+    #overlay p {
+      font-size: 14px;
+      color: #a0a0c0;
+      text-align: center;
+    }
+
+    .btn {
+      padding: 12px 30px;
+      font-size: 16px;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-start {
+      background: linear-gradient(135deg, #4060ff, #8040ff);
+      color: #fff;
+      box-shadow: 0 4px 20px rgba(80, 64, 255, 0.5);
+    }
+
+    .btn-start:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 30px rgba(80, 64, 255, 0.7);
+    }
+
+    /* Controls guide */
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .control-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .key {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+      padding: 2px 7px;
+      font-size: 11px;
+      color: #c0c0e0;
+      min-width: 40px;
+      text-align: center;
+    }
+
+    .control-label {
+      font-size: 11px;
+      color: #8080a0;
+      flex: 1;
+      text-align: right;
+    }
+
+    /* Level indicator */
+    .level-bar-wrapper {
+      margin-top: 6px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 4px;
+      height: 6px;
+      overflow: hidden;
+    }
+
+    #levelBar {
+      height: 100%;
+      background: linear-gradient(90deg, #4060ff, #e0c060);
+      border-radius: 4px;
+      transition: width 0.3s;
+      width: 0%;
+    }
+
+    /* Mobile buttons */
+    .mobile-controls {
+      display: none;
+    }
+
+    @media (max-width: 600px) {
+      body { align-items: flex-start; padding: 10px; }
+      .game-wrapper { flex-direction: column; align-items: center; gap: 10px; }
+      .left-panel, .right-panel { flex-direction: row; width: 300px; flex-wrap: wrap; }
+      .panel-box { flex: 1; min-width: 120px; }
+      .mobile-controls { display: grid; grid-template-columns: repeat(3, 60px); gap: 6px; margin-top: 10px; }
+      .mobile-btn {
+        width: 60px; height: 60px;
+        background: rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 8px;
+        color: #fff;
+        font-size: 20px;
+        cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      .mobile-btn:active { background: rgba(255,255,255,0.25); }
+      .mobile-btn.drop { grid-column: 2; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="game-wrapper">
+
+  <!-- Left Panel -->
+  <div class="left-panel">
+    <div class="panel-box" style="text-align:center;">
+      <div class="title">🎮 ເກມເຕັດຕຣິດ</div>
+    </div>
+
+    <div class="panel-box">
+      <h3>ຄະແນນ</h3>
+      <div class="value" id="scoreDisplay">0</div>
+      <div class="sub-value">ສູງສຸດ: <span id="highScoreDisplay">0</span></div>
+    </div>
+
+    <div class="panel-box">
+      <h3>ລະດັບ</h3>
+      <div class="value" id="levelDisplay">1</div>
+      <div class="level-bar-wrapper"><div id="levelBar"></div></div>
+    </div>
+
+    <div class="panel-box">
+      <h3>ແຖວ</h3>
+      <div class="value" id="linesDisplay">0</div>
+    </div>
+  </div>
+
+  <!-- Game Canvas -->
+  <div class="canvas-container">
+    <canvas id="gameCanvas" width="300" height="600"></canvas>
+    <div id="overlay">
+      <h1>🎮<br/>ເກມເຕັດຕຣິດ</h1>
+      <p>ເກມຕໍ່ຊິ້ນສ່ວນ</p>
+      <button class="btn btn-start" id="startBtn" onclick="startGame()">ເລີ່ມຫຼິ້ນ</button>
+    </div>
+  </div>
+
+  <!-- Right Panel -->
+  <div class="right-panel">
+    <div class="panel-box" style="text-align:center;">
+      <h3 style="text-align:center;">ຊິ້ນຕໍ່ໄປ</h3>
+      <canvas id="nextCanvas" width="120" height="120"></canvas>
+    </div>
+
+    <div class="panel-box">
+      <h3>ການຄວບຄຸມ</h3>
+      <div class="controls">
+        <div class="control-item">
+          <span class="key">←→</span>
+          <span class="control-label">ຍ້າຍ</span>
+        </div>
+        <div class="control-item">
+          <span class="key">↑</span>
+          <span class="control-label">ໝູນ</span>
+        </div>
+        <div class="control-item">
+          <span class="key">↓</span>
+          <span class="control-label">ລົງໄວ</span>
+        </div>
+        <div class="control-item">
+          <span class="key">Space</span>
+          <span class="control-label">ລົງທັນທີ</span>
+        </div>
+        <div class="control-item">
+          <span class="key">P</span>
+          <span class="control-label">ຢຸດ/ຕໍ່</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-box">
+      <h3>ໂບນັດ</h3>
+      <div class="controls">
+        <div class="control-item">
+          <span class="key">1 ແຖວ</span>
+          <span class="control-label">100</span>
+        </div>
+        <div class="control-item">
+          <span class="key">2 ແຖວ</span>
+          <span class="control-label">300</span>
+        </div>
+        <div class="control-item">
+          <span class="key">3 ແຖວ</span>
+          <span class="control-label">500</span>
+        </div>
+        <div class="control-item">
+          <span class="key">4 ແຖວ</span>
+          <span class="control-label">800</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Mobile controls -->
+<div class="mobile-controls" id="mobileControls" style="display:none;">
+  <div></div>
+  <div class="mobile-btn" onpointerdown="mobileAction('rotate')">↑</div>
+  <div></div>
+  <div class="mobile-btn" onpointerdown="mobileAction('left')">←</div>
+  <div class="mobile-btn drop" onpointerdown="mobileAction('drop')">⬇</div>
+  <div class="mobile-btn" onpointerdown="mobileAction('right')">→</div>
+  <div></div>
+  <div class="mobile-btn" onpointerdown="mobileAction('softdrop')">↓</div>
+  <div></div>
+</div>
+
+<script>
+// ============================================================
+// ຂໍ້ມູນຊິ້ນສ່ວນ Tetromino
+// ============================================================
+const PIECES = {
+  I: { shape: [[1,1,1,1]], color: '#00d4ff' },
+  O: { shape: [[1,1],[1,1]], color: '#ffd700' },
+  T: { shape: [[0,1,0],[1,1,1]], color: '#cc44ff' },
+  S: { shape: [[0,1,1],[1,1,0]], color: '#44ff88' },
+  Z: { shape: [[1,1,0],[0,1,1]], color: '#ff4444' },
+  J: { shape: [[1,0,0],[1,1,1]], color: '#4488ff' },
+  L: { shape: [[0,0,1],[1,1,1]], color: '#ff8844' },
+};
+const PIECE_KEYS = Object.keys(PIECES);
+
+const COLS = 10;
+const ROWS = 20;
+const BLOCK = 30;
+const NEXT_BLOCK = 24;
+
+// ============================================================
+// ສ່ວນ Canvas
+// ============================================================
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const nextCanvas = document.getElementById('nextCanvas');
+const nextCtx = nextCanvas.getContext('2d');
+
+// ============================================================
+// ສະຖານະເກມ
+// ============================================================
+let board = [];
+let currentPiece = null;
+let nextPiece = null;
+let score = 0;
+let highScore = parseInt(localStorage.getItem('tetris_lao_hs') || '0');
+let level = 1;
+let lines = 0;
+let gameRunning = false;
+let gamePaused = false;
+let gameOver = false;
+let dropInterval = null;
+let linesForNextLevel = 10;
+let linesClearedThisLevel = 0;
+let animFrameId = null;
+let lastTime = 0;
+let dropAccum = 0;
+let dropSpeed = 800; // ms per drop
+
+// ============================================================
+// ຮູບແບບຊິ້ນ
+// ============================================================
+function createBoard() {
+  return Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+}
+
+function randomPiece() {
+  const key = PIECE_KEYS[Math.floor(Math.random() * PIECE_KEYS.length)];
+  const p = PIECES[key];
+  const shape = p.shape.map(r => [...r]);
+  return {
+    key,
+    shape,
+    color: p.color,
+    x: Math.floor((COLS - shape[0].length) / 2),
+    y: 0,
+  };
+}
+
+function rotatePiece(shape) {
+  const rows = shape.length;
+  const cols = shape[0].length;
+  const rotated = Array.from({ length: cols }, () => Array(rows).fill(0));
+  for (let r = 0; r < rows; r++)
+    for (let c = 0; c < cols; c++)
+      rotated[c][rows - 1 - r] = shape[r][c];
+  return rotated;
+}
+
+// ============================================================
+// ການຊ່ວງ / ການຂຽນ
+// ============================================================
+function isValid(shape, x, y) {
+  for (let r = 0; r < shape.length; r++) {
+    for (let c = 0; c < shape[r].length; c++) {
+      if (!shape[r][c]) continue;
+      const nx = x + c;
+      const ny = y + r;
+      if (nx < 0 || nx >= COLS || ny >= ROWS) return false;
+      if (ny >= 0 && board[ny][nx]) return false;
+    }
+  }
+  return true;
+}
+
+function placePiece() {
+  const { shape, color, x, y } = currentPiece;
+  for (let r = 0; r < shape.length; r++)
+    for (let c = 0; c < shape[r].length; c++)
+      if (shape[r][c] && y + r >= 0)
+        board[y + r][x + c] = color;
+}
+
+function clearLines() {
+  let cleared = 0;
+  for (let r = ROWS - 1; r >= 0; r--) {
+    if (board[r].every(cell => cell !== 0)) {
+      board.splice(r, 1);
+      board.unshift(Array(COLS).fill(0));
+      cleared++;
+      r++; // recheck same row index
+    }
+  }
+  if (cleared > 0) {
+    const bonuses = [0, 100, 300, 500, 800];
+    score += (bonuses[cleared] || 800) * level;
+    lines += cleared;
+    linesClearedThisLevel += cleared;
+    if (linesClearedThisLevel >= linesForNextLevel) {
+      level++;
+      linesClearedThisLevel -= linesForNextLevel;
+      dropSpeed = Math.max(100, 800 - (level - 1) * 70);
+    }
+    if (score > highScore) {
+      highScore = score;
+      localStorage.setItem('tetris_lao_hs', highScore);
+    }
+    updateUI();
+  }
+}
+
+// ============================================================
+// Ghost piece (shadow)
+// ============================================================
+function getGhostY() {
+  let gy = currentPiece.y;
+  while (isValid(currentPiece.shape, currentPiece.x, gy + 1)) gy++;
+  return gy;
+}
+
+// ============================================================
+// ການແຕ້ມ
+// ============================================================
+function drawBlock(context, x, y, color, size, alpha = 1) {
+  context.save();
+  context.globalAlpha = alpha;
+  context.fillStyle = color;
+  context.fillRect(x * size + 1, y * size + 1, size - 2, size - 2);
+  // highlight
+  context.fillStyle = 'rgba(255,255,255,0.25)';
+  context.fillRect(x * size + 1, y * size + 1, size - 2, 4);
+  context.fillRect(x * size + 1, y * size + 1, 4, size - 2);
+  // shadow inner
+  context.fillStyle = 'rgba(0,0,0,0.2)';
+  context.fillRect(x * size + 1, y * size + size - 5, size - 2, 4);
+  context.fillRect(x * size + size - 5, y * size + 1, 4, size - 2);
+  context.restore();
+}
+
+function drawBoard() {
+  // Background grid
+  ctx.fillStyle = '#080820';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+      ctx.strokeRect(c * BLOCK, r * BLOCK, BLOCK, BLOCK);
+    }
+  }
+  // Placed blocks
+  for (let r = 0; r < ROWS; r++)
+    for (let c = 0; c < COLS; c++)
+      if (board[r][c]) drawBlock(ctx, c, r, board[r][c], BLOCK);
+}
+
+function drawCurrent() {
+  if (!currentPiece) return;
+  // Draw ghost
+  const gy = getGhostY();
+  if (gy !== currentPiece.y) {
+    currentPiece.shape.forEach((row, r) =>
+      row.forEach((v, c) => {
+        if (v) drawBlock(ctx, currentPiece.x + c, gy + r, currentPiece.color, BLOCK, 0.2);
+      })
+    );
+  }
+  // Draw piece
+  currentPiece.shape.forEach((row, r) =>
+    row.forEach((v, c) => {
+      if (v) drawBlock(ctx, currentPiece.x + c, currentPiece.y + r, currentPiece.color, BLOCK);
+    })
+  );
+}
+
+function drawNext() {
+  nextCtx.fillStyle = '#080820';
+  nextCtx.fillRect(0, 0, nextCanvas.width, nextCanvas.height);
+  if (!nextPiece) return;
+  const offX = Math.floor((5 - nextPiece.shape[0].length) / 2);
+  const offY = Math.floor((5 - nextPiece.shape.length) / 2);
+  nextPiece.shape.forEach((row, r) =>
+    row.forEach((v, c) => {
+      if (v) drawBlock(nextCtx, offX + c, offY + r, nextPiece.color, NEXT_BLOCK);
+    })
+  );
+}
+
+// ============================================================
+// UI Update
+// ============================================================
+function updateUI() {
+  document.getElementById('scoreDisplay').textContent = score.toLocaleString();
+  document.getElementById('highScoreDisplay').textContent = highScore.toLocaleString();
+  document.getElementById('levelDisplay').textContent = level;
+  document.getElementById('linesDisplay').textContent = lines;
+  const pct = Math.min((linesClearedThisLevel / linesForNextLevel) * 100, 100);
+  document.getElementById('levelBar').style.width = pct + '%';
+}
+
+// ============================================================
+// Game Loop
+// ============================================================
+function gameLoop(timestamp) {
+  if (!gameRunning || gamePaused) return;
+  const dt = timestamp - lastTime;
+  lastTime = timestamp;
+  dropAccum += dt;
+  if (dropAccum >= dropSpeed) {
+    dropAccum = 0;
+    moveDown();
+  }
+  drawBoard();
+  drawCurrent();
+  drawNext();
+  animFrameId = requestAnimationFrame(gameLoop);
+}
+
+// ============================================================
+// ການເຄື່ອນໄຫວ
+// ============================================================
+function moveLeft() {
+  if (!gameRunning || gamePaused) return;
+  if (isValid(currentPiece.shape, currentPiece.x - 1, currentPiece.y))
+    currentPiece.x--;
+}
+
+function moveRight() {
+  if (!gameRunning || gamePaused) return;
+  if (isValid(currentPiece.shape, currentPiece.x + 1, currentPiece.y))
+    currentPiece.x++;
+}
+
+function moveDown() {
+  if (!gameRunning || gamePaused) return;
+  if (isValid(currentPiece.shape, currentPiece.x, currentPiece.y + 1)) {
+    currentPiece.y++;
+  } else {
+    placePiece();
+    clearLines();
+    spawnPiece();
+  }
+}
+
+function rotate() {
+  if (!gameRunning || gamePaused) return;
+  const rotated = rotatePiece(currentPiece.shape);
+  // Wall kick
+  let newX = currentPiece.x;
+  if (isValid(rotated, newX, currentPiece.y)) {
+    currentPiece.shape = rotated;
+    return;
+  }
+  // Try kick left/right
+  for (const kick of [-1, 1, -2, 2]) {
+    if (isValid(rotated, newX + kick, currentPiece.y)) {
+      currentPiece.shape = rotated;
+      currentPiece.x = newX + kick;
+      return;
+    }
+  }
+}
+
+function hardDrop() {
+  if (!gameRunning || gamePaused) return;
+  while (isValid(currentPiece.shape, currentPiece.x, currentPiece.y + 1))
+    currentPiece.y++;
+  score += 2;
+  placePiece();
+  clearLines();
+  spawnPiece();
+  updateUI();
+}
+
+// ============================================================
+// ການ spawn ຊິ້ນໃໝ່
+// ============================================================
+function spawnPiece() {
+  currentPiece = nextPiece || randomPiece();
+  nextPiece = randomPiece();
+  drawNext();
+  if (!isValid(currentPiece.shape, currentPiece.x, currentPiece.y)) {
+    endGame();
+  }
+}
+
+// ============================================================
+// ເລີ່ມ / ຈົບ / ຢຸດ
+// ============================================================
+function startGame() {
+  board = createBoard();
+  score = 0;
+  level = 1;
+  lines = 0;
+  linesClearedThisLevel = 0;
+  dropSpeed = 800;
+  dropAccum = 0;
+  gameRunning = true;
+  gamePaused = false;
+  gameOver = false;
+  document.getElementById('overlay').style.display = 'none';
+  updateUI();
+  nextPiece = randomPiece();
+  spawnPiece();
+  lastTime = performance.now();
+  if (animFrameId) cancelAnimationFrame(animFrameId);
+  animFrameId = requestAnimationFrame(gameLoop);
+
+  // Show mobile controls on touch devices
+  if ('ontouchstart' in window) {
+    document.getElementById('mobileControls').style.display = 'grid';
+  }
+}
+
+function endGame() {
+  gameRunning = false;
+  gameOver = true;
+  cancelAnimationFrame(animFrameId);
+  // Final draw
+  drawBoard();
+  drawCurrent();
+  // Show overlay
+  const overlay = document.getElementById('overlay');
+  overlay.innerHTML = `
+    <h1 style="font-size:26px;">ເກມຈົບແລ້ວ! 😢</h1>
+    <p style="font-size:16px; color:#e0c060;">ຄະແນນ: <strong>${score.toLocaleString()}</strong></p>
+    <p style="font-size:13px; color:#8080a0;">ລະດັບ: ${level} &nbsp;|&nbsp; ແຖວ: ${lines}</p>
+    ${score >= highScore && score > 0 ? '<p style="color:#ffd700; font-size:14px;">🏆 ຄະແນນສູງສຸດໃໝ່!</p>' : ''}
+    <button class="btn btn-start" onclick="startGame()">ຫຼິ້ນໃໝ່</button>
+  `;
+  overlay.style.display = 'flex';
+}
+
+function togglePause() {
+  if (!gameRunning) return;
+  gamePaused = !gamePaused;
+  if (!gamePaused) {
+    lastTime = performance.now();
+    animFrameId = requestAnimationFrame(gameLoop);
+  } else {
+    cancelAnimationFrame(animFrameId);
+    // Draw pause text
+    ctx.save();
+    ctx.fillStyle = 'rgba(0,0,20,0.7)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 28px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('⏸ ຢຸດຊົ່ວຄາວ', canvas.width / 2, canvas.height / 2 - 20);
+    ctx.font = '16px sans-serif';
+    ctx.fillStyle = '#a0a0c0';
+    ctx.fillText('ກົດ P ເພື່ອຫຼິ້ນຕໍ່', canvas.width / 2, canvas.height / 2 + 20);
+    ctx.restore();
+  }
+}
+
+// ============================================================
+// ການຄວບຄຸມ Keyboard
+// ============================================================
+const keyState = {};
+let dasTimer = null;
+let arrTimer = null;
+const DAS = 170; // ms delay before repeat
+const ARR = 50;  // ms repeat interval
+
+document.addEventListener('keydown', (e) => {
+  if (keyState[e.code]) return;
+  keyState[e.code] = true;
+
+  switch (e.code) {
+    case 'ArrowLeft':
+      e.preventDefault();
+      moveLeft();
+      dasTimer = setTimeout(() => {
+        arrTimer = setInterval(moveLeft, ARR);
+      }, DAS);
+      break;
+    case 'ArrowRight':
+      e.preventDefault();
+      moveRight();
+      dasTimer = setTimeout(() => {
+        arrTimer = setInterval(moveRight, ARR);
+      }, DAS);
+      break;
+    case 'ArrowDown':
+      e.preventDefault();
+      dropAccum = 0;
+      moveDown();
+      break;
+    case 'ArrowUp':
+      e.preventDefault();
+      rotate();
+      break;
+    case 'Space':
+      e.preventDefault();
+      hardDrop();
+      break;
+    case 'KeyP':
+      togglePause();
+      break;
+  }
+});
+
+document.addEventListener('keyup', (e) => {
+  keyState[e.code] = false;
+  if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') {
+    clearTimeout(dasTimer);
+    clearInterval(arrTimer);
+  }
+});
+
+// ============================================================
+// Mobile controls
+// ============================================================
+function mobileAction(action) {
+  switch (action) {
+    case 'left':    moveLeft(); break;
+    case 'right':   moveRight(); break;
+    case 'rotate':  rotate(); break;
+    case 'softdrop':dropAccum = 0; moveDown(); break;
+    case 'drop':    hardDrop(); break;
+  }
+}
+
+// ============================================================
+// Initial draw
+// ============================================================
+updateUI();
+(function initialDraw() {
+  board = createBoard();
+  drawBoard();
+  drawNext();
+})();
+</script>
+</body>
+</html>

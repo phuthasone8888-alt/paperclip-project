@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const path = require('path');
 const webhooks = require('./routes/webhooks');
 const reply = require('./routes/reply');
 
@@ -7,10 +8,16 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Health check
 app.get('/', (req, res) => {
   res.json({ status: 'ok', message: 'Paperclip automation API is running' });
+});
+
+// Tetris game (Lao)
+app.get('/tetris', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'tetris.html'));
 });
 
 // Channel webhooks
